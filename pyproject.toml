@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "photo-stitcher"
+version = "0.1.0"
+description = "Review, rotate, and stitch FastFoto-style photo scans"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "Pillow>=10",
+    "PyQt6>=6.5",
+]
+
+[project.scripts]
+photo-stitch = "photo_stitcher.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
