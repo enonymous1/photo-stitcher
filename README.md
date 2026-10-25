@@ -3,48 +3,41 @@
 A desktop wizard for reviewing, rotating, and stitching Epson FastFoto-style
 photo scans.
 
-## Origin
+<!-- Demo GIF or screenshot goes here, above the fold: a short capture of
+     picking a front and stitching a back. Record on Windows; this box
+     can't render the GUI. -->
 
-This started with an Epson FastFoto scanner and a pile of old family photos.
-The scanner does a great job digitizing — front scans, plus back scans for
-the handwritten notes on the reverse — but it leaves you with a folder of
-files and no good way to pick the best front, pair each photo with its back,
-or straighten the ones that came out sideways. This is the tool I wished
-existed: a simple review pass over each photo, stitch the back on when you
-want it, and end with a clean `completed/` folder.
+## Quick start
 
-It isn't affiliated with or endorsed by Epson; it just works with the
-`[Base].jpg` / `[Base]_a.jpg` / `[Base]_b.jpg` naming the scanner produces,
-and with any other scans renamed to match.
-
-## Naming convention
-
-```
-FastFoto_0158.jpg      primary front scan
-FastFoto_0158_a.jpg    optional second front scan
-FastFoto_0158_b.jpg    optional back-of-photo scan
-```
-
-Files are grouped by base name. Groups with only a primary scan are ignored
-by the review queue (they can be swept into `single_scans/` instead).
-
-## Install
+Requires Python 3.10+.
 
 ```bash
-pip install -e .
+git clone https://github.com/enonymous1/photo-stitcher.git
+cd photo-stitcher
+pip install -e .   # installs the photo-stitch command
+photo-stitch       # pick your scans folder in the dialog
 ```
 
-This installs the `photo-stitch` command. Requires Python 3.10+.
-
-## Run
+Or without installing the command:
 
 ```bash
-photo-stitch [--move-single-scans] [--move-reviewed-originals]
-# or
-python -m photo_stitcher [--move-single-scans] [--move-reviewed-originals]
+python -m photo_stitcher
 ```
 
-Workflow per group:
+Optional organizing flags (both commands accept them):
+
+```bash
+photo-stitch --move-single-scans --move-reviewed-originals
+```
+
+`--move-single-scans` sweeps primary-only groups into `single_scans/`;
+`--move-reviewed-originals` moves the originals of finished groups into
+`reviewed_originals/`. Without these flags, your originals are never moved
+or altered.
+
+## What it does
+
+Point it at a folder of scans and review each photo, one group at a time:
 
 1. **Pick the best front** (side-by-side, when a `_a` scan exists).
 2. **Optionally stitch the `_b` back scan** on (top / bottom / left / right),
@@ -60,15 +53,76 @@ the top of each review step shows your position in the queue ("Group 3 of
 12"). Image loading shows a brief busy indicator; stitching and saving run
 on a worker thread behind a modal progress dialog, so the app stays
 responsive even with large scans. When every group is finished, the summary
-page stays available so the move-to-`reviewed_originals` / `single_scans` buttons
-remain reachable.
+page stays available so the move-to-`reviewed_originals` / `single_scans`
+buttons remain reachable.
 
 Progress is tracked in `.photo_stitch_state.json` inside the source folder,
 so you can close the app mid-queue and resume later: finished groups are
 skipped, rotations are restored, and each finished group keeps an audit
 record of your choices.
 
-## Layout
+## Before and after
+
+```
+Before:
+  FastFoto_0158.jpg, FastFoto_0158_a.jpg, FastFoto_0158_b.jpg
+  FastFoto_0159.jpg
+
+After a review pass (with both organizing flags):
+  completed/FastFoto_0158.jpg            best front + back stitched on
+  reviewed_originals/FastFoto_0158*.jpg  originals, untouched
+  single_scans/FastFoto_0159.jpg         primary-only group, swept aside
+```
+
+## Naming convention
+
+```
+FastFoto_0158.jpg      primary front scan
+FastFoto_0158_a.jpg    optional second front scan
+FastFoto_0158_b.jpg    optional back-of-photo scan
+```
+
+Files are grouped by base name. Groups with only a primary scan are ignored
+by the review queue (they can be swept into `single_scans/` instead).
+
+## Origin
+
+This started with an Epson FastFoto scanner and a pile of old family photos.
+The scanner does a great job digitizing — front scans, plus back scans for
+the handwritten notes on the reverse — but it leaves you with a folder of
+files and no good way to pick the best front, pair each photo with its back,
+or straighten the ones that came out sideways. This is the tool I wished
+existed: a simple review pass over each photo, stitch the back on when you
+want it, and end with a clean `completed/` folder.
+
+It isn't affiliated with or endorsed by Epson; it just works with the
+`[Base].jpg` / `[Base]_a.jpg` / `[Base]_b.jpg` naming the scanner produces,
+and with any other scans renamed to match.
+
+## Non-goals
+
+- Not a scanner driver — it works on files the scanner already produced.
+- Not a photo editor — no color correction, cropping, or red-eye removal.
+- Not automatic — every group gets a human review pass, deliberately. The
+  point is curation, not bulk processing.
+- Not a panorama stitcher — it composites a photo's front with its back,
+  nothing wider.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Scan folder] --> B[Group by base name]
+    B --> C[Pick the best front]
+    C --> D[Stitch the back?]
+    D --> E[Save to completed/]
+    E --> F{More groups?}
+    F -->|Yes| C
+    F -->|No| G[Summary + organize]
+```
+
+<details>
+<summary>Layout</summary>
 
 ```
 src/photo_stitcher/
@@ -89,7 +143,10 @@ tests/
 The `grouping`, `imaging`, and `state` modules have no Qt dependency and can
 be reused headlessly (e.g. batch-organizing scans from a script).
 
-## Tests
+</details>
+
+<details>
+<summary>Tests</summary>
 
 ```bash
 python tests/test_logic.py
@@ -100,3 +157,5 @@ python -m pytest tests/ -q
 
 The GUI flow tests stub out PyQt6, so they run anywhere with Pillow
 installed — no display or Qt system libraries needed.
+
+</details>
