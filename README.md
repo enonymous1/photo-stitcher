@@ -103,8 +103,12 @@ and with any other scans renamed to match.
 
 - Not a scanner driver — it works on files the scanner already produced.
 - Not a photo editor — no color correction, cropping, or red-eye removal.
-- Not automatic — every group gets a human review pass, deliberately. The
-  point is curation, not bulk processing.
+- Not automatic — every group with a decision in it gets a human review
+  pass, deliberately. The point is curation, not bulk processing.
+  Organizing is the exception: single-scan groups have nothing to review,
+  so they can be sorted into `single_scans/` automatically on demand (the
+  `--move-single-scans` flag, or the summary screen's "Move single scans…"
+  button), and finished originals the same way into `reviewed_originals/`.
 - Not a panorama stitcher — it composites a photo's front with its back,
   nothing wider.
 
