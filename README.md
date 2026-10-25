@@ -3,9 +3,7 @@
 A desktop wizard for reviewing, rotating, and stitching Epson FastFoto-style
 photo scans.
 
-<!-- Demo GIF or screenshot goes here, above the fold: a short capture of
-     picking a front and stitching a back. Record on Windows; this box
-     can't render the GUI. -->
+![Demo: picking the best front, then previewing the back stitched on](docs/demo.gif)
 
 ## Quick start
 
